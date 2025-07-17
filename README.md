@@ -1,6 +1,5 @@
 # Netflix Movies and TV Shows Data Analysis using SQL
 
-![](https://github.com/najirh/netflix_sql_project/blob/main/logo.png)
 
 ## Overview
 This project involves a comprehensive analysis of Netflix's movies and TV shows data using SQL. The goal is to extract valuable insights and answer various business questions based on the dataset. The following README provides a detailed account of the project's objectives, business problems, solutions, findings, and conclusions.
@@ -25,7 +24,7 @@ DROP TABLE IF EXISTS netflix;
 CREATE TABLE netflix
 (
     show_id      VARCHAR(5),
-    type         VARCHAR(10),
+    show_type    VARCHAR(10),
     title        VARCHAR(250),
     director     VARCHAR(550),
     casts        VARCHAR(1050),
@@ -44,11 +43,11 @@ CREATE TABLE netflix
 ### 1. Count the Number of Movies vs TV Shows
 
 ```sql
-SELECT 
-    type,
-    COUNT(*)
-FROM netflix
-GROUP BY 1;
+SELECT * FROM netflix
+
+select show_type,count(show_id)
+from netflix
+group by show_type;
 ```
 
 **Objective:** Determine the distribution of content types on Netflix.
@@ -56,27 +55,23 @@ GROUP BY 1;
 ### 2. Find the Most Common Rating for Movies and TV Shows
 
 ```sql
+
 WITH RatingCounts AS (
     SELECT 
-        type,
+        show_type,
         rating,
         COUNT(*) AS rating_count
     FROM netflix
-    GROUP BY type, rating
+    GROUP BY show_type, rating
 ),
 RankedRatings AS (
     SELECT 
-        type,
+        show_type,
         rating,
         rating_count,
         RANK() OVER (PARTITION BY type ORDER BY rating_count DESC) AS rank
     FROM RatingCounts
 )
-SELECT 
-    type,
-    rating AS most_frequent_rating
-FROM RankedRatings
-WHERE rank = 1;
 ```
 
 **Objective:** Identify the most frequently occurring rating for each type of content.
@@ -94,18 +89,13 @@ WHERE release_year = 2020;
 ### 4. Find the Top 5 Countries with the Most Content on Netflix
 
 ```sql
-SELECT * 
-FROM
-(
-    SELECT 
-        UNNEST(STRING_TO_ARRAY(country, ',')) AS country,
-        COUNT(*) AS total_content
-    FROM netflix
-    GROUP BY 1
-) AS t1
-WHERE country IS NOT NULL
-ORDER BY total_content DESC
-LIMIT 5;
+
+select unnest(string_to_array(country,',')) as new_country,
+count(show_id) as counts
+from netflix
+group by country
+order by counts desc
+limit 5;
 ```
 
 **Objective:** Identify the top 5 countries with the highest number of content items.
@@ -135,14 +125,19 @@ WHERE TO_DATE(date_added, 'Month DD, YYYY') >= CURRENT_DATE - INTERVAL '5 years'
 ### 7. Find All Movies/TV Shows by Director 'Rajiv Chilaka'
 
 ```sql
-SELECT *
-FROM (
-    SELECT 
-        *,
-        UNNEST(STRING_TO_ARRAY(director, ',')) AS director_name
-    FROM netflix
-) AS t
-WHERE director_name = 'Rajiv Chilaka';
+
+SELECT * FROM NETFLIX
+WHERE DIRECTOR =  'Rajiv Chilaka';
+
+-- OTHER METHOD TO SOLVE THIS
+
+SELECT * FROM NETFLIX
+WHERE DIRECTOR LIKE  '%Rajiv Chilaka%';
+
+-- OTHER METHOD TO SOLVE THIS 
+
+SELECT * FROM NETFLIX
+WHERE DIRECTOR ILIKE  '%Rajiv Chilaka%';
 ```
 
 **Objective:** List all content directed by 'Rajiv Chilaka'.
@@ -151,9 +146,9 @@ WHERE director_name = 'Rajiv Chilaka';
 
 ```sql
 SELECT *
-FROM netflix
-WHERE type = 'TV Show'
-  AND SPLIT_PART(duration, ' ', 1)::INT > 5;
+FROM NETFLIX
+WHERE show_type = 'TV Show'
+and split_part(duration,' ',1) :: numeric  > 5
 ```
 
 **Objective:** Identify TV shows with more than 5 seasons.
@@ -161,11 +156,11 @@ WHERE type = 'TV Show'
 ### 9. Count the Number of Content Items in Each Genre
 
 ```sql
-SELECT 
-    UNNEST(STRING_TO_ARRAY(listed_in, ',')) AS genre,
-    COUNT(*) AS total_content
-FROM netflix
-GROUP BY 1;
+select unnest(string_to_array(listed_in,',')) as genre,
+count(show_id) as counts
+from netflix
+group by genre
+order by counts desc;
 ```
 
 **Objective:** Count the number of content items in each genre.
@@ -266,18 +261,3 @@ GROUP BY category;
 This analysis provides a comprehensive view of Netflix's content and can help inform content strategy and decision-making.
 
 
-
-## Author - Zero Analyst
-
-This project is part of my portfolio, showcasing the SQL skills essential for data analyst roles. If you have any questions, feedback, or would like to collaborate, feel free to get in touch!
-
-### Stay Updated and Join the Community
-
-For more content on SQL, data analysis, and other data-related topics, make sure to follow me on social media and join our community:
-
-- **YouTube**: [Subscribe to my channel for tutorials and insights](https://www.youtube.com/@zero_analyst)
-- **Instagram**: [Follow me for daily tips and updates](https://www.instagram.com/zero_analyst/)
-- **LinkedIn**: [Connect with me professionally](https://www.linkedin.com/in/najirr)
-- **Discord**: [Join our community to learn and grow together](https://discord.gg/36h5f2Z5PK)
-
-Thank you for your support, and I look forward to connecting with you!
